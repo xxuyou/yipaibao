@@ -26,9 +26,9 @@ WSS 路线图（暂定）：
 
 接入 WSS 服务的几个步骤：
 
-1. **建立应用** 根据业务建立一个应用，名为 `my_test_app` 用于管理自有软件系统的全部 `数据池` 数据（此步骤无需编程）；如有必要，可以建立多个应用
-1. **发布数据** 发布者在特定事件发生时（例如拍卖开始、成功创建订单时），向 WSS 服务 API 发布一个名为 `auction_begin` 的事件（此即为 `数据池`），事件包含一个 JSON 数据包（数据包内容自定，UTF-8 字符编码格式；数据池无须事先定义，WSS 将会自动建立；需编程实现）
-1. **接收订阅** 合法的订阅者在特定的场景（一般是某个 Web 页面）中监听 `auction_begin` 事件（需编程实现），即可实时接收到发来的数据包。一个合法订阅者可建立多个订阅
+1. **建立应用** 根据业务建立一个应用，名为 `my_test_app` 用于管理自有软件系统的全部数据池数据；如有必要，可以建立多个应用（此步骤无需编程）
+1. **发布数据** 发布者在特定事件发生时（例如拍卖开始、成功创建订单时），向 WSS 服务 RESTful API 的应用 `my_test_app/auction_begin` 的数据池发布一个 JSON 数据包（数据池如不存在 WSS 会自动创建；数据包内容自定，UTF-8 字符编码格式；此步骤需编程实现）
+1. **接收订阅** 合法的订阅者在特定的场景（例如某个 Web 页面）中监听 `my_test_app` 的 `auction_begin` 数据池对应的事件（此步骤需编程实现），即可实时接收到发来的数据包。一个合法订阅者可建立多个订阅；事件分为 `:add` `:update` `:append` `:delete` 等，详见下面描述
 
 要接入 WSS 服务，需要在服务端和客户端分别进行相关工作。
 
@@ -39,16 +39,17 @@ WSS 路线图（暂定）：
 请求包和响应包均为 JSON 格式。
 
 - **GET** 获取指定应用下的数据池保存的数据
-  - `URI` http://xxuyou.com/rest/
   - `Method` GET
-  - `Parameters`
-    - `AuthKey` 1Ufd******PitR
-    - `AppName` my_test_app
-    - `PoolName` client_price
-
+  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `Parameters` 参数组
+    - `AuthKey` 1Ufd******PitR 应用密钥
+    - `AppName` my_test_app 应用名
+    - `PoolName` client_price 数据池名
+  - `Trigger Client Event` 对应客户端触发事件
+    - `None`
 
 ```sh
-!#/bin/bash
+#!/bin/bash
 curl -4 'http://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
 ```
 
@@ -65,9 +66,9 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 if ($ssl) {
-  //不验证证书
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    //不验证证书
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 };
 $result = curl_exec($ch);
 curl_close($ch);
@@ -76,16 +77,18 @@ var_dump($result); // 得到返回的数据
 ```
 
 - **DELETE** 删除指定应用下的数据池，该键中保存的数据也将一并删除
-  - `URI` http://xxuyou.com/rest/
   - `Method` DELETE
-  - `Parameters`
-    - `AuthKey` 1Ufd******PitR
-    - `AppName` my_test_app
-    - `PoolName` client_price
+  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `Parameters` 参数组
+    - `AuthKey` 1Ufd******PitR 应用密钥
+    - `AppName` my_test_app 应用名
+    - `PoolName` client_price 数据池名
+  - `Trigger Client Event` 对应客户端触发事件
+    - `:delete` 删除整个数据池时触发
 
 
 ```sh
-!#/bin/bash
+#!/bin/bash
 curl -4 -X DELETE 'http://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
 ```
 
@@ -105,8 +108,8 @@ if ($method) curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method); // 声明 Method
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_POST, true);
 if ($ssl) {
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
 };
 $result = curl_exec($ch);
 curl_close($ch);
@@ -116,18 +119,21 @@ var_dump($result); // 得到操作结果
 
 
 - **PUT** 修改指定应用下的数据池中的数据（可理解为覆盖操作）
-  - `URI` http://xxuyou.com/rest/
   - `Method` PUT
-  - `Parameters`
-    - `AuthKey` 1Ufd******PitR
-    - `AppName` my_test_app
-    - `PoolName` action_341
-  - `Request Header` Content-Type: application/json
-  - `Request Body` {...}
+  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `Parameters` 参数组
+    - `AuthKey` 1Ufd******PitR 应用密钥
+    - `AppName` my_test_app 应用名
+    - `PoolName` action_341 数据池名
+  - `Request Header` Content-Type: application/json 请求头内容类型申明
+  - `Request Body` {...}  请求体内容，UTF-8 编码 JSON 格式
+  - `Trigger Client Event` 对应客户端触发事件
+    - `:update` 当数据池已经存在时触发（推荐监听此事件）
+    - `:add` 当数据池不存在时触发
 
 
 ```sh
-!#/bin/bash
+#!/bin/bash
 curl -4 -X PUT \
 -H 'Content-Type: application/json' \
 -d '{"event": "auction_close", "action_id": 341, "result": 1, "complete_price": 1450000,  "customer_id": 87, "order_id": 629}' \
@@ -154,8 +160,8 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);    //PUT数据
 if ($ssl) {
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
 };
 $result = curl_exec($ch);
 curl_close($ch);
@@ -165,18 +171,21 @@ var_dump($result); // 操作成功会返回一个唯一ID
 
 
 - **POST** 在指定应用下的数据池中新增数据（可理解为追加操作）
-  - `URI` http://xxuyou.com/rest/
   - `Method` POST
-  - `Parameters`
-    - `AuthKey` 1Ufd******PitR
-    - `AppName` my_test_app
-    - `PoolName` client_price
-  - `Request Header` Content-Type: application/json
-  - `Request Body` {...}
+  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `Parameters` 参数组
+    - `AuthKey` 1Ufd******PitR 应用密钥
+    - `AppName` my_test_app 应用名
+    - `PoolName` client_price 数据池名
+  - `Request Header` Content-Type: application/json 请求头内容类型申明
+  - `Request Body` {...}  请求体内容，UTF-8 编码 JSON 格式
+  - `Trigger Client Event` 对应客户端触发事件
+    - `:append` 当数据池已经存在时触发（推荐监听此事件）
+    - `:add` 当数据池不存在时触发
 
 
 ```sh
-!#/bin/bash
+#!/bin/bash
 curl -4 -X POST \
 -H 'Content-Type: application/json' \
 -d '{"event": "auction_price", "new_price": 1450000, "action_id": 341, "customer_id": 87}' \
@@ -203,8 +212,8 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);    //POST数据
 if ($ssl) {
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
 };
 $result = curl_exec($ch);
 curl_close($ch);
@@ -228,12 +237,12 @@ WSS 服务是一个公开在广域互联网上的实时数据推送服务，因�
 
 WSS 服务使用 JWT(JSON Web Tokens) [JWT 官网](https://jwt.io) 来进行令牌鉴权（鉴别权限），因此需要接入方在连接 WSS 服务之前生成身份鉴权令牌。
 
-接入方在生成身份鉴权令牌需要以下三个参数，均为必填项，可增加参数，WSS 在鉴权成功后会返回全部参数。
+接入方在生成身份鉴权令牌的数据包 `payload` 需要以下三个参数，均为必填项；可增加其他业务参数，WSS 在鉴权成功后会返回全部参数。
 
 - `Payload`
-  - `app` my_test_app
-  - `uid` 71
-  - `exp` 18623523110
+  - `app` my_test_app 应用名
+  - `uid` 71  客户端用户唯一ID
+  - `exp` 18623523110 令牌过期时间戳
 
 
 ```php
@@ -244,7 +253,7 @@ $payload = array(
     'exp' => time() + 86700
 );
 $secretKey = "1Ufd******PitR"; // 超级密钥
-$token = \JWT::encode($payload, $secretKey, 'HS256'); ／／ JWT 加密参数恒定为 HS256
+$token = \JWT::encode($payload, $secretKey, 'HS256'); // JWT 加密参数恒定为 HS256
 ?>
 ```
 
@@ -252,7 +261,7 @@ $token = \JWT::encode($payload, $secretKey, 'HS256'); ／／ JWT 加密参数恒
 
 客户端运行环境为兼容主流内核（如：Trident内核／Gecko内核／WebKit内核／Presto内核）的 Web 浏览器中，最佳调用方式是使用 Javascript 脚本。
 
-WSS 服务在客户端接入推荐使用 Socket.IO [官网](https://socket.io) 代码库，此代码库使用起来已经相当简单了，为了进一步方便使用，荆秀封装了连接、鉴权、监听事件的工厂方法，直接引入即可使用。
+WSS 服务在客户端接入推荐使用 Socket.IO [官网](https://socket.io) 代码库，此代码库使用起来已经相当简单了，为了进一步方便使用，WSS 封装了连接、鉴权、监听事件的工厂方法，直接引入即可使用。
 
 ```js
 <script src="js/wss.class.js?version=3.4.6"></script>
@@ -320,6 +329,10 @@ WSS 服务在客户端接入推荐使用 Socket.IO [官网](https://socket.io) �
 </script>
 ```
 
+> WSS 工厂类返回的是 `Socket` 对象
+
+> Socket.IO 绑定事件使用 `Socket.on()` 方法，解除绑定事件使用 `Socket.off()` 方法，详见其 [官网 Docs Client API](https://socket.io/docs/client-api/)。
+
 ## 第三方库依赖
 
 要使用 WSS 服务，接入方的服务端和客户端需要使用以下的第三方开源代码。
@@ -350,7 +363,7 @@ Socket.IO [官网](https://socket.io) 是一个跨平台的实时数据通信的
 
 事件驱动在计算机软件领域是一种开发模式和实现方式，一个典型的软件就是 Windows（官网 [Microsoft](http://www.microsoft.com/windows)）系列操作系统。
 
-软件通过对一系列的人类或者非人类操作进行响应，比如鼠标点击按钮、键盘按下和松开等等，软件相应的功能就会被触发开始运行。
+软件通过对一系列操作进行响应，比如鼠标点击按钮、键盘按下和松开等等，软件相应的功能就会被触发开始运行。
 
 订阅者接入 WSS 服务后，是被动的等待接收数据。订阅者仅仅知道需要监听哪个事件（数据池），但并不知道何时会收到数据，只有接收到数据后才能做出响应，这也是典型的 EDA 开发机制。
 
@@ -368,7 +381,7 @@ WSS 收费范围也是基于应用，即每个应用可以选择不同的费用�
 
 WSS 服务运行在广域互联网（也称“公网”）上，需要对连接到 WSS 服务的发布和订阅客户端进行鉴权（鉴定权限）,阻止非法资源操作、非法连接和数据泄露。
 
-WSS 服务的每个应用均可建立一个长度为 40 字节的应用密钥，用于发布方调用 REST API 时、和制作订阅方鉴权令牌时使用。
+WSS 服务的每个应用均可建立一个长度为 40 字节的应用密钥，用于发布方调用 RESTful API 时、和制作订阅方鉴权令牌时使用。
 
 WSS 服务使用应用和应用密钥互相印证的方式来实现对发布者的身份鉴权。
 
@@ -386,34 +399,56 @@ WSS 服务使用 JWT（JSON WebToken）Token 来实现订阅者身份鉴权。�
 
 数据池数量不限，可根据不同的业务事件建立多个数据池。
 
-数据池也不需要事先建立，WSS 会根据需要或新增、或更新、或追加数据池。
+数据池也不需要事先建立，如果 RESTful API 操作的数据池不存在，WSS 会自动创建（GET 和 DELETE 操作不会触发自动创建）。
 
 ### Pub 发布
 
-客户软件通过 WSS 的 RESTful API 操作一个应用的数据池资源，就是“发布”动作（发布动作包含 PUT/POST 资源操作）。
+客户软件通过 WSS 的 RESTful API 操作一个应用的数据池资源，就是“发布”动作（发布动作包含 DELETE/PUT/POST 资源操作）。
 
 一个发布可以被多个订阅者订阅；一个订阅者也可以订阅多个发布。
 
 ### Sub 订阅
 
-客户软件连接到 WSS 服务器后，监听数据池就是“订阅”动作。
+客户软件连接到 WSS 服务器后，监听数据池数据变化就是“订阅”动作（也可称为事件监听）。
+
+一个发布可能触发一个或者多个事件，前面 RESTful API 中已经列举全部事件，订阅者可根据业务需要选用相应的事件来监听。
+
+PUT 和 POST 操作会有多个事件触发，是为了方便业务上不同的需求，例如有些业务只监听某个数据第一次发生变化，有些业务则需要监听某个数据每次发生的变化，等等。后续 WSS 还将适时推出更多的事件推送，以适应更多的业务需求，简化订阅者开发工作。
 
 一个发布可以被多个订阅者订阅；一个订阅者也可以订阅多个发布。
 
-订阅客户端接入实时数据推送的机制涉及到 HTTP/1.1 协议和 WebSocket 协议，为了方便处理需要引入一个 Javascript 对象库([Socket.IO 官网](https://socket.io))，该对象库可以大大简化客户端接入的步骤和方法。
-
-订阅也可以称为“监听”。
+订阅客户端接入实时数据推送的机制涉及到 HTTP/1.1 协议和 WebSocket 协议，为了方便处理需要引入一个 Javascript 对象库（[Socket.IO 官网](https://socket.io)），该对象库可以大大简化客户端接入的步骤和方法。
 
 ### Broadcast 广播
 
 当 N 个订阅者成功连接上 WSS 服务后，WSS 会维持全部的合法连接。当发布者发布数据时，WSS 立即会把数据的多个副本按照应用、数据池规则发送给全部订阅者，这一动作就是广播。
 
 举个例子：
+
 > 订阅者1成功连接后，订阅了 test1、test2 和 test3 数据池。
+
 > 订阅者2成功连接后，订阅了 test1、test3 数据池。
+
 > 订阅者3成功连接后，订阅了 test4 数据池。
+
 > 订阅者4成功连接后，没有订阅任何数据池。
+
 > 当发布者发布数据池 test1 ，数据为 {"name":"test1 OK"}，那么订阅者1、2会收到此 JSON 数据包；
+
 > 当发布者发布数据池 test2 ，数据为 {"name":"test2 OK"}，那么订阅者1会收到此 JSON 数据包；
+
 > 当发布者发布数据池 test4 ，数据为 {"name":"test4 OK"}，那么订阅者3会收到此 JSON 数据包；
+
 > 前面三个发布动作，订阅者4不会收到任何数据。
+
+WSS 服务目前不支持向特定的订阅者广播数据，但是可以使用业务系统规划来实现这个需求，具体思路是：
+
+1. 给一组订阅者约定一个共同使用的数据池
+1. 发布者在特定业务向这个数据池发布数据
+1. 订阅者在进入监听时根据业务需要决定是否监听此数据池
+
+监听此数据池事件的订阅者可收到数据，而没有监听此数据池的订阅者收不到数据，这样即可实现对特定订阅者广播数据的业务。
+
+###### _# for yipaiart_
+
+_Fin._
