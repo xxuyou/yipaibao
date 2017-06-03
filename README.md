@@ -88,7 +88,8 @@ var_dump($result); // 得到返回的数据
     - `AppName` my_test_app 应用名
     - `PoolName` client_price 数据池名
   - `Trigger Client Event` 对应客户端触发事件
-    - `:delete` 删除整个数据池时触发
+    - `poolName:delete` 删除整个数据池时触发，如：client_price:delete
+    - `poolName:change` 数据池发生变动时触发，如：client_price:change
 
 
 ```sh
@@ -128,12 +129,13 @@ var_dump($result); // 得到操作结果
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
-    - `PoolName` action_341 数据池名
+    - `PoolName` client_price 数据池名
   - `Request Header` Content-Type: application/json 请求头内容类型申明
   - `Request Body` {...}  请求体内容，UTF-8 编码 JSON 格式
   - `Trigger Client Event` 对应客户端触发事件
-    - `:update` 当数据池已经存在时触发（推荐监听此事件）
-    - `:add` 当数据池不存在时触发
+    - `poolName:update` 当数据池已经存在时触发（推荐监听此事件），如：client_price:update
+    - `poolName:add` 当数据池不存在时触发，如：client_price:add
+    - `poolName:change` 数据池发生变动时触发，如：client_price:change
 
 
 ```sh
@@ -184,8 +186,9 @@ var_dump($result); // 操作成功会返回一个唯一ID
   - `Request Header` Content-Type: application/json 请求头内容类型申明
   - `Request Body` {...}  请求体内容，UTF-8 编码 JSON 格式
   - `Trigger Client Event` 对应客户端触发事件
-    - `:append` 当数据池已经存在时触发（推荐监听此事件）
-    - `:add` 当数据池不存在时触发
+    - `poolName:append` 当数据池已经存在时触发（推荐监听此事件），如：client_price:append
+    - `poolName:add` 当数据池不存在时触发，如：client_price:add
+    - `poolName:change` 数据池发生变动时触发，如：client_price:change
 
 
 ```sh
@@ -224,6 +227,18 @@ curl_close($ch);
 var_dump($result); // 操作成功会返回一个唯一ID
 ?>
 ```
+
+#### DELETE 触发事件的顺序
+1. `poolName:change`
+1. `poolName:delete`
+
+#### PUT 触发事件的顺序
+1. `poolName:change`
+1. `poolName:add` 或者 `poolName:update`
+
+#### POST 触发事件的顺序
+1. `poolName:change`
+1. `poolName:add` 或者 `poolName:append`
 
 
 > 按：鉴于目前业界对于 REST 的理解和实践、实现有所差异（特别是对于 PUT 和 POST 表征的理解有所差异），此处并不讨论何为“正确的 REST 表征描述”，仅采用“合适的 REST 表征描述”，不必过于纠结。
