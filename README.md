@@ -1,4 +1,4 @@
-[![荆秀实时数据推送服务](https://github.com/xxuyou/yipaibao/blob/master/screenshot/logo-160.png)](http://xxuyou.com)
+[![荆秀实时数据推送服务](http://xxuyou.com/static/screenshot/logo-160.png)](http://xxuyou.com)
 
 # WSS Real-time Data Push Service
 
@@ -10,7 +10,7 @@ WSS 是 **荆秀实时数据推送服务** 的英文简称。
 
 WSS 提供一个位于广域互联网的数据转发服务，服务方式是接收到发布者的数据请求后，依据预先设立的应用划定广播边界，在边界内对应用的全部订阅者进行数据副本的群发服务。
 
-![WSS 服务机制](https://github.com/xxuyou/yipaibao/blob/master/screenshot/workflow000001.png)
+![WSS 服务机制](http://xxuyou.com/static/screenshot/workflow000001.png)
 
 WSS 封装了复杂的内部实现，对外开放了简单的发布／订阅机制（Pub/Sub），简单几步即可建立基于此机制的业务。
 
