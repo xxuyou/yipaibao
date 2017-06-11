@@ -18,11 +18,8 @@ class Xxuyou {
 	static function post($url, array $data) {
 		return self::_post($url, 'POST', '', $data);
 	}
-	static function patch($url, array $data) {
-		return self::_post($url, 'PATCH', '', $data);
-	}
 	static function delete($url) {
-		return self::_post($url, 'DELETE', '', $data);
+		return self::_post($url, 'DELETE', '');
 	}
 	/**
 	 +----------------------------------------------------------
@@ -49,6 +46,7 @@ class Xxuyou {
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书下同
 			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
 		};
+		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4); // IPv4
 		$r = curl_exec($ch);
 		$info = curl_getinfo($ch);
 		curl_close($ch);
@@ -70,7 +68,7 @@ class Xxuyou {
 	 * @return array
 	 +----------------------------------------------------------
 	 */
-	static function _post($url, $method='', $header='', $body, $userAgent='', $timeout=self::TIMEOUT) {
+	static function _post($url, $method='', $header, $body, $userAgent='', $timeout=self::TIMEOUT) {
 		$ssl = substr($url, 0, 8) == self::SSL ? true : false;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -86,6 +84,7 @@ class Xxuyou {
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
 			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
 		};
+		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4); // IPv4
 		$r = curl_exec($ch);
 		$info = curl_getinfo($ch);
 		curl_close($ch);
