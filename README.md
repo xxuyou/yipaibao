@@ -1,4 +1,4 @@
-[![荆秀实时数据推送服务](http://xxuyou.com/static/screenshot/logo-160.png)](http://xxuyou.com)
+[![荆秀实时数据推送服务](https://xxuyou.com/static/screenshot/logo-160.png)](https://xxuyou.com)
 
 # WSS Real-time Data Push Service
 
@@ -10,7 +10,7 @@ WSS 是 **荆秀实时数据推送服务** 的英文简称。
 
 WSS 提供一个位于广域互联网的数据转发服务，服务方式是接收到发布者的数据请求后，依据预先设立的应用划定广播边界，在边界内对应用的全部订阅者进行数据副本的群发服务。
 
-![WSS 服务机制](http://xxuyou.com/static/screenshot/workflow000001.png)
+![WSS 服务机制](https://xxuyou.com/static/screenshot/workflow000001.png)
 
 WSS 封装了复杂的内部实现，对外开放了简单的发布／订阅机制（Pub/Sub），简单几步即可建立基于此机制的业务。
 
@@ -19,12 +19,6 @@ WSS 服务给提供了基于 HTTP 1.1 的 RESTful API，发布者可使用 GET/D
 WSS 服务提供了开放于广域互联网的 URI，使得任何互联网终端均可连接和订阅事件。事件订阅基于标准 WebSocket 协议而并非私有协议，使用者无须担心对未来软件系统升级的潜在的兼容性问题。
 
 目前 WSS 提供 S2C（Server to Client）的单向数据广播（Broadcast 下行）模式（可理解为群发），尚不支持 C2S（Client to Server）的交互模式，这是 WSS 的业务方向所决定的。
-
-WSS 路线图（暂定）：
-1. S2D 单点触达（Server to Device）模式，实现对特定单点、终端进行数据触达
-1. D2D 终端间触达（Device 2 Device）模式，实现特定多个单点间一对一数据触达
-1. 钩子 服务端触达（Webhook）模式，推送数据给服务器
-1. ......
 
 ## 最佳实践
 
@@ -44,7 +38,7 @@ WSS 路线图（暂定）：
 
 - **GET** 获取指定应用下的数据池保存的数据
   - `Method` GET
-  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `URI` https://xxuyou.com/rest/ 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -54,12 +48,12 @@ WSS 路线图（暂定）：
 
 ```sh
 #!/bin/bash
-curl -4 'http://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
+curl -4 'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
 ```
 
 ```php
 <?php
-$uri = "http://xxuyou.com/rest/";
+$uri = "https://xxuyou.com/rest/";
 $authKey = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "client_price";
@@ -82,7 +76,7 @@ var_dump($result); // 得到返回的数据
 
 - **DELETE** 删除指定应用下的数据池，该键中保存的数据也将一并删除
   - `Method` DELETE
-  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `URI` https://xxuyou.com/rest/ 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -94,12 +88,12 @@ var_dump($result); // 得到返回的数据
 
 ```sh
 #!/bin/bash
-curl -4 -X DELETE 'http://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
+curl -4 -X DELETE 'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
 ```
 
 ```php
 <?php
-$uri = "http://xxuyou.com/rest/";
+$uri = "https://xxuyou.com/rest/";
 $authKey = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "client_price";
@@ -125,7 +119,7 @@ var_dump($result); // 得到操作结果
 
 - **PUT** 修改指定应用下的数据池中的数据（可理解为覆盖操作）
   - `Method` PUT
-  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `URI` https://xxuyou.com/rest/ 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -143,12 +137,12 @@ var_dump($result); // 得到操作结果
 curl -4 -X PUT \
 -H 'Content-Type: application/json' \
 -d '{"event": "auction_close", "action_id": 341, "result": 1, "complete_price": 1450000,  "customer_id": 87, "order_id": 629}' \
-'http://xxuyou.com/rest/1Ufd******PitR/my_test_app/action_341'
+'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/action_341'
 ```
 
 ```php
 <?php
-$uri = "http://xxuyou.com/rest/";
+$uri = "https://xxuyou.com/rest/";
 $authKey = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "action_341";
@@ -178,7 +172,7 @@ var_dump($result); // 操作成功会返回一个唯一ID
 
 - **POST** 在指定应用下的数据池中新增数据（可理解为追加操作）
   - `Method` POST
-  - `URI` http://xxuyou.com/rest/ 资源地址
+  - `URI` https://xxuyou.com/rest/ 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -196,12 +190,12 @@ var_dump($result); // 操作成功会返回一个唯一ID
 curl -4 -X POST \
 -H 'Content-Type: application/json' \
 -d '{"event": "auction_price", "new_price": 1450000, "action_id": 341, "customer_id": 87}' \
-'http://xxuyou.com/rest/1Ufd******PitR/my_test_app/action_341'
+'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/action_341'
 ```
 
 ```php
 <?php
-$uri = "http://xxuyou.com/rest/";
+$uri = "https://xxuyou.com/rest/";
 $authKey = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "action_341";
@@ -293,7 +287,7 @@ WSS 服务在客户端接入推荐使用 Socket.IO [官网](https://socket.io) �
         var config = {
             "debug": true, // 打开调试模式，会输出连接和鉴权信息
             "info":  document.getElementById('result'), // 指定显示调试信息的元素容器
-            "url":   "http://xxuyou.com/",   // wss 服务器 url
+            "url":   "https://xxuyou.com/",   // wss 服务器 url
             "app":   "my_test_app",   // 自己创建的 app name，用于域权限验证
             "jwt":   "<?php echo $token; ?>", // 使用 JWT 制作的用户令牌，用于用户身份验证
             "listener": []  // 待注册的监听事件，数组内放置多个监听函数
