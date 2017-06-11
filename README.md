@@ -14,9 +14,14 @@ WSS 提供一个位于广域互联网的数据转发服务，服务方式是接�
 
 WSS 封装了复杂的内部实现，对外开放了简单的发布／订阅机制（Pub/Sub），简单几步即可建立基于此机制的业务。
 
-WSS 服务给提供了基于 HTTP 1.1 的 RESTful API，发布者可使用 GET/DELETE/PUT/POST 指令来操作 WSS 服务提供的资源；订阅者基于事件监听机制，即可实现被动接收 WSS 服务主动推送过来的消息数据。
+WSS 服务提供了基于 HTTP 1.1 的 RESTful API，发布者可使用 GET/DELETE/PUT/POST 指令来操作 WSS 服务提供的资源；采用 RESTful API 的好处是可以抹平服务端使用的开发语言的差异，学习成本基本为 0，技术开发人员可以将更多的精力放在业务数据结构、流程、逻辑等的构建上。
 
-WSS 服务提供了开放于广域互联网的 URI，使得任何互联网终端均可连接和订阅事件。事件订阅基于标准 WebSocket 协议而并非私有协议，使用者无须担心对未来软件系统升级的潜在的兼容性问题。
+WSS 服务提供了开放于广域互联网的 URI，使得任何互联网终端均可连接和订阅事件。事件订阅基于标准 **WebSocket** 协议而并非私有协议，使用者无须担心对未来软件系统升级的潜在的兼容性问题。
+
+> 目前所有的主流浏览器均支持 WebSocket 协议，细节参见：
+> * http://websocket.org
+> * http://caniuse.com/#feat=websockets
+> * https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API
 
 目前 WSS 提供 S2C（Server to Client）的单向数据广播（Broadcast 下行）模式（可理解为群发），尚不支持 C2S（Client to Server）的交互模式，这是 WSS 的业务方向所决定的。
 
@@ -38,7 +43,7 @@ WSS 服务提供了开放于广域互联网的 URI，使得任何互联网终端
 
 - **GET** 获取指定应用下的数据池保存的数据
   - `Method` GET
-  - `URI` https://xxuyou.com/rest/ 资源地址
+  - `URI` WSS Restful API Url 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -48,35 +53,26 @@ WSS 服务提供了开放于广域互联网的 URI，使得任何互联网终端
 
 ```sh
 #!/bin/bash
-curl -4 'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
+curl -4 'WSS Restful API Url/1Ufd******PitR/my_test_app/client_price'
 ```
 
 ```php
 <?php
-$uri = "https://xxuyou.com/rest/";
-$authKey = "1Ufd******PitR";
+require './lib/Xxuyou.class.php';
+define('DS', DIRECTORY_SEPARATOR);
+$uri      = "WSS Restful API Url";
+$authKey  = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "client_price";
-$url = $uri . $authKey . $appName . $poolName;
-
-$ssl = substr($url, 0, 8) == 'https://' ? true : false;
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-if ($ssl) {
-    //不验证证书
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-};
-$result = curl_exec($ch);
-curl_close($ch);
-var_dump($result); // 得到返回的数据
+$url      = $uri.$authKey.DS.$appName.DS.$poolName;
+$resBody  = Xxuyou::get($url);
+var_dump($resBody);
 ?>
 ```
 
 - **DELETE** 删除指定应用下的数据池，该键中保存的数据也将一并删除
   - `Method` DELETE
-  - `URI` https://xxuyou.com/rest/ 资源地址
+  - `URI` WSS Restful API Url 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -88,38 +84,27 @@ var_dump($result); // 得到返回的数据
 
 ```sh
 #!/bin/bash
-curl -4 -X DELETE 'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/client_price'
+curl -4 -X DELETE 'WSS Restful API Url/1Ufd******PitR/my_test_app/client_price'
 ```
 
 ```php
 <?php
-$uri = "https://xxuyou.com/rest/";
-$authKey = "1Ufd******PitR";
+require './lib/Xxuyou.class.php';
+define('DS', DIRECTORY_SEPARATOR);
+$uri      = "WSS Restful API Url";
+$authKey  = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "client_price";
-$url = $uri . $authKey . $appName . $poolName;
-$method = "DELETE";
-
-$ssl = substr($url, 0, 8) == self::SSL ? true : false;
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-if ($method) curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method); // 声明 Method
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_POST, true);
-if ($ssl) {
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
-};
-$result = curl_exec($ch);
-curl_close($ch);
-var_dump($result); // 得到操作结果
+$url      = $uri.$authKey.DS.$appName.DS.$poolName;
+$resBody  = Xxuyou::delete($url);
+var_dump($resBody);
 ?>
 ```
 
 
 - **PUT** 修改指定应用下的数据池中的数据（可理解为覆盖操作）
   - `Method` PUT
-  - `URI` https://xxuyou.com/rest/ 资源地址
+  - `URI` WSS Restful API Url 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -137,42 +122,35 @@ var_dump($result); // 得到操作结果
 curl -4 -X PUT \
 -H 'Content-Type: application/json' \
 -d '{"event": "auction_close", "action_id": 341, "result": 1, "complete_price": 1450000,  "customer_id": 87, "order_id": 629}' \
-'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/action_341'
+'WSS Restful API Url/1Ufd******PitR/my_test_app/action_341'
 ```
 
 ```php
 <?php
-$uri = "https://xxuyou.com/rest/";
-$authKey = "1Ufd******PitR";
+require './lib/Xxuyou.class.php';
+define('DS', DIRECTORY_SEPARATOR);
+$uri      = "WSS Restful API Url";
+$authKey  = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "action_341";
-$url = $uri . $authKey . $appName . $poolName;
-$method = "PUT";
-$header = array('Content-Type: application/json');
-$body = '{"event": "auction_close", "action_id": 341, "result": 1, "complete_price": 1450000,  "customer_id": 87, "order_id": 629}';
-
-$ssl = substr($url, 0, 8) == self::SSL ? true : false;
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-if ($method) curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method); // 声明 Method
-if ($header) curl_setopt($ch, CURLOPT_HTTPHEADER, $header);//设置HTTP头
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $body);    //PUT数据
-if ($ssl) {
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
-};
-$result = curl_exec($ch);
-curl_close($ch);
-var_dump($result); // 操作成功会返回一个唯一ID
+$url      = $uri.$authKey.DS.$appName.DS.$poolName;
+$payload  = array(
+	'event'          => 'auction_close',
+	'action_id'      => 341,
+	'result'         => 1,
+	'complete_price' => 1450000,
+	'customer_id'    => 87,
+	'order_id'       => 629
+);
+$resBody = Xxuyou::put($url, $payload);
+var_dump($resBody);
 ?>
 ```
 
 
 - **POST** 在指定应用下的数据池中新增数据（可理解为追加操作）
   - `Method` POST
-  - `URI` https://xxuyou.com/rest/ 资源地址
+  - `URI` WSS Restful API Url 资源地址
   - `Parameters` 参数组
     - `AuthKey` 1Ufd******PitR 应用密钥
     - `AppName` my_test_app 应用名
@@ -190,35 +168,26 @@ var_dump($result); // 操作成功会返回一个唯一ID
 curl -4 -X POST \
 -H 'Content-Type: application/json' \
 -d '{"event": "auction_price", "new_price": 1450000, "action_id": 341, "customer_id": 87}' \
-'https://xxuyou.com/rest/1Ufd******PitR/my_test_app/action_341'
+'WSS Restful API Url/1Ufd******PitR/my_test_app/action_341'
 ```
 
 ```php
 <?php
-$uri = "https://xxuyou.com/rest/";
-$authKey = "1Ufd******PitR";
+require './lib/Xxuyou.class.php';
+define('DS', DIRECTORY_SEPARATOR);
+$uri      = "WSS Restful API Url";
+$authKey  = "1Ufd******PitR";
 $appName  = "my_test_app";
 $poolName = "action_341";
-$url = $uri . $authKey . $appName . $poolName;
-$method = "POST";
-$header = array('Content-Type: application/json');
-$body = '{"event": "auction_price", "new_price": 1450000, "action_id": 341, "customer_id": 87}';
-
-$ssl = substr($url, 0, 8) == self::SSL ? true : false;
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-if ($method) curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method); // 声明 Method
-if ($header) curl_setopt($ch, CURLOPT_HTTPHEADER, $header);//设置HTTP头
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $body);    //POST数据
-if ($ssl) {
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //不验证证书
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); //
-};
-$result = curl_exec($ch);
-curl_close($ch);
-var_dump($result); // 操作成功会返回一个唯一ID
+$url      = $uri.$authKey.DS.$appName.DS.$poolName;
+$payload  = array(
+	'event'       => 'auction_price',
+	'new_price'   => 1450000,
+	'action_id'   => 341,
+	'customer_id' => 87
+);
+$resBody = Xxuyou::post($url, $payload);
+var_dump($resBody);
 ?>
 ```
 
@@ -287,7 +256,7 @@ WSS 服务在客户端接入推荐使用 Socket.IO [官网](https://socket.io) �
         var config = {
             "debug": true, // 打开调试模式，会输出连接和鉴权信息
             "info":  document.getElementById('result'), // 指定显示调试信息的元素容器
-            "url":   "https://xxuyou.com/",   // wss 服务器 url
+            "url":   "WSS WebSocket Service Url",   // wss 服务器 url
             "app":   "my_test_app",   // 自己创建的 app name，用于域权限验证
             "jwt":   "<?php echo $token; ?>", // 使用 JWT 制作的用户令牌，用于用户身份验证
             "listener": []  // 待注册的监听事件，数组内放置多个监听函数
@@ -345,6 +314,10 @@ WSS 服务在客户端接入推荐使用 Socket.IO [官网](https://socket.io) �
 > WSS 工厂类返回的是 `Socket` 对象
 
 > Socket.IO 绑定事件使用 `Socket.on()` 方法，解除绑定事件使用 `Socket.off()` 方法，详见其 [官网 Docs Client API](https://socket.io/docs/client-api/)。
+
+## DEMO
+
+相关代码请见 [服务端及客户端示例代码](https://github.com/xxuyou/yipaibao/tree/master/example)
 
 ## 第三方库依赖
 
