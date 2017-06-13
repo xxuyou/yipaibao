@@ -235,7 +235,7 @@ $payload = array(
     'exp' => time() + 86700
 );
 $secretKey = "1Ufd******PitR"; // 超级密钥
-$token = \JWT::encode($payload, $secretKey, {"algorithm": "HS256"}); // JWT 加密参数恒定为 HS256
+$token = \JWT::encode($payload, $secretKey, "HS256"); // JWT 加密参数恒定为 HS256
 ?>
 ```
 
