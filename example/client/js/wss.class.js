@@ -1,11 +1,12 @@
 /**
  * WSS核心类
  * 负责连接 io、鉴权、绑定监听事件
+ * 2017-07-02 fixed [Multiple sockets open after reconnect #430](https://github.com/socketio/socket.io/issues/430)
  *
  * @author Xuejun Guan <guanxuejun@gmail.com> (http://xxuyou.com)
- * @version 3.4.6
+ * @version 3.5.0
  * @license Commercial Licensing.
- * @update 2017-05-29
+ * @update 2017-07-02
  *
  */
 
@@ -21,13 +22,14 @@ var WSS = function (option) {
   /**
    * Public member
    */
-  _self.version = "3.4.6";
-  _self.author  = "Xuejun Guan <guanxuejun@gmail.com> (http://xxuyou.com)";
+  _self.version = "3.5.0";
+  _self.author  = "Xuejun Guan <guanxuejun@gmail.com> (https://xxuyou.com)";
   _self.license = "Commercial Licensing.";
-  _self.update  = "2017-05-20";
+  _self.update  = "2017-07-02";
   _self.debug   = false;
   _self.info    = option['info']; // 调试错误输出的 html 容器
   _self.instance= undefined;
+  _self.binded  = false; // 标记是否已经绑定事件
   /**
    * Private member
    */
@@ -53,7 +55,7 @@ var WSS = function (option) {
       if (_self.debug === true) _output('[DEBUG][ERR] fail', 'Realtime Service connect fail!');
     };
     // regist listen events
-    if (option['listener']) {
+    if (option['listener'] && _self.binded === false) {
       if (Array.isArray(option['listener']) && option['listener'].length > 0) {
         var lisCount = option['listener'].length;
         for (var i=0; i<lisCount; i++) {
@@ -64,6 +66,7 @@ var WSS = function (option) {
       } else {
         if (_self.debug === true) _output('[DEBUG][INFO] defined listener, but length is zero.');
       };
+      _self.binded = true;
     } else {
       if (_self.debug === true) _output('[DEBUG][INFO] did not define listener');
     };
@@ -84,6 +87,7 @@ var WSS = function (option) {
   } else {
     if (_self.debug === true) _output('[DEBUG][INFO] init OK', 'ready to connect');
     _self.instance.on('connect', function () {
+      if (_self.debug === true) _output('[DEBUG][INFO] event connect', 'socket.id: ' + _self.instance['id']);
       _running = false;
       var _auth = {"token": option['jwt'], "app": option['app']};
       if (_self.debug === true) _output('[DEBUG][INFO] auth data', _auth);
@@ -112,6 +116,21 @@ var WSS = function (option) {
           _running = false;
           if (_self.debug === true) _output('[DEBUG][ERR] error', err);
           console.log('[ERR]error: ', err);
+        });
+        _self.instance.on('reconnect', function (attempt) {
+          _running = false;
+          if (_self.debug === true) _output('[DEBUG][ERR] reconnect', attempt);
+          console.log('[ERR]reconnect: ', attempt);
+        });
+        _self.instance.on('reconnecting', function (attempt) {
+          _running = false;
+          if (_self.debug === true) _output('[DEBUG][ERR] reconnecting', attempt);
+          console.log('[ERR]reconnecting: ', attempt);
+        });
+        _self.instance.on('reconnect_error', function (err) {
+          _running = false;
+          if (_self.debug === true) _output('[DEBUG][ERR] reconnect_error', err);
+          console.log('[ERR]reconnect_error: ', err);
         });
         _construct();
       });
